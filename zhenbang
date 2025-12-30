@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>蚌不蚌</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3B82F6',
+            secondary: '#10B981',
+            accent: '#F59E0B',
+            dark: '#1F2937',
+            light: '#F3F4F6'
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          animation: {
+            'bounce-scale': 'bounce-scale 0.5s ease-in-out',
+            'shake': 'shake 0.5s ease-in-out',
+            'float': 'float 3s ease-in-out infinite',
+          },
+          keyframes: {
+            'bounce-scale': {
+              '0%, 100%': { transform: 'scale(1)' },
+              '50%': { transform: 'scale(1.1)' },
+            },
+            'shake': {
+              '0%, 100%': { transform: 'translateX(0)' },
+              '25%': { transform: 'translateX(-5px)' },
+              '75%': { transform: 'translateX(5px)' },
+            },
+            'float': {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-10px)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .text-shadow {
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+      .glass {
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+      }
+      .card-hover {
+        transition: all 0.3s ease;
+      }
+      .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      }
+      .tech-card {
+        background: rgba(255, 255, 255, 0.85);
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+      }
+      .success-animation {
+        animation: success-pulse 0.6s ease-in-out;
+      }
+      @keyframes success-pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.2); box-shadow: 0 0 20px rgba(16, 185, 129, 0.6); }
+        100% { transform: scale(1); }
+      }
+      .error-animation {
+        animation: error-shake 0.5s ease-in-out;
+      }
+      @keyframes error-shake {
+        0%, 100% { transform: translateX(0); }
+        20%, 60% { transform: translateX(-5px); }
+        40%, 80% { transform: translateX(5px); }
+      }
+      .confetti {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background-color: #f00;
+        border-radius: 50%;
+        animation: confetti-fall 3s ease-in-out forwards;
+      }
+      @keyframes confetti-fall {
+        0% {
+          transform: translateY(-100vh) rotate(0deg);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(100vh) rotate(360deg);
+          opacity: 0;
+        }
+      }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-blue-100 to-indigo-200 min-h-screen font-sans">
+  <div class="container mx-auto px-4 py-8 max-w-4xl">
+    <!-- 游戏标题 -->
+    <header class="text-center mb-8">
+      <h1 class="text-4xl md:text-5xl font-bold text-dark mb-2 text-shadow"></h1>
+      <p class="text-lg text-gray-600"></p>
+    </header>
+    
+    <!-- 游戏信息 -->
+    <div class="flex justify-between items-center mb-6">
+      <div class="glass rounded-lg px-4 py-2 flex items-center">
+        <i class="fa fa-trophy text-accent mr-2"></i>
+        <span class="font-semibold">得分: <span id="score" class="text-primary">0</span></span>
+      </div>
+      <div class="glass rounded-lg px-4 py-2 flex items-center">
+        <i class="fa fa-clock-o text-accent mr-2"></i>
+        <span class="font-semibold">时间: <span id="timer" class="text-primary">30</span>s</span>
+      </div>
+      <button id="restart-btn" class="bg-primary hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 flex items-center">
+        <i class="fa fa-refresh mr-2"></i> 重新开始
+      </button>
+    </div>
+    
+    <!-- 游戏区域 -->
+    <div class="bg-white bg-opacity-80 rounded-xl shadow-xl p-6 mb-8">
+      <!-- 目标技术栈 -->
+      <div class="text-center mb-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">请选择: <span id="target-tech" class="text-primary font-extrabold text-3xl">React</span></h2>
+        <p class="text-gray-600">从下方三个图标中选择与上方技术栈名称匹配的一个</p>
+      </div>
+      
+      <!-- 猫图片区域 -->
+      <div class="flex justify-center mb-8 relative">
+        <div id="cat-container" class="relative w-48 h-48">
+          <img id="cat-image" src="https://p11-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/7dbc0a5fc1d04b03bf7537951537e7df.png~tplv-a9rns2rl98-24:720:720.png?rcl=20251230232618899198AC47430461EF30&rk3s=8e244e95&rrcfp=8a172a1a&x-expires=1767713178&x-signature=S1uSq7FGd5dBbetuMrOBRj1f5uo%3D" alt="猫" class="w-full h-full object-contain bg-white rounded-full p-2 shadow-lg">
+          <div id="cat-paw" class="absolute top-0 left-0 w-20 h-20 bg-transparent transform origin-bottom-left transition-all duration-500 opacity-0 z-50">
+            <!-- 更卡通的猫爪SVG -->
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <!-- 手掌 -->
+              <ellipse cx="50" cy="60" rx="30" ry="20" fill="#FFD700" stroke="black" stroke-width="2"/>
+              <!-- 拇指 -->
+              <ellipse cx="30" cy="40" rx="10" ry="12" fill="#FFD700" stroke="black" stroke-width="2" transform="rotate(-30, 30, 40)"/>
+              <!-- 食指 -->
+              <ellipse cx="50" cy="30" rx="10" ry="12" fill="#FFD700" stroke="black" stroke-width="2"/>
+              <!-- 中指 -->
+              <ellipse cx="70" cy="35" rx="10" ry="12" fill="#FFD700" stroke="black" stroke-width="2" transform="rotate(30, 70, 35)"/>
+              <!-- 无名指 -->
+              <ellipse cx="80" cy="50" rx="10" ry="12" fill="#FFD700" stroke="black" stroke-width="2" transform="rotate(45, 80, 50)"/>
+              <!-- 小拇指 -->
+              <ellipse cx="20" cy="50" rx="10" ry="12" fill="#FFD700" stroke="black" stroke-width="2" transform="rotate(-45, 20, 50)"/>
+              <!-- 爪垫 -->
+              <ellipse cx="40" cy="65" rx="5" ry="3" fill="#FF69B4" stroke="black" stroke-width="1"/>
+              <ellipse cx="50" cy="68" rx="5" ry="3" fill="#FF69B4" stroke="black" stroke-width="1"/>
+              <ellipse cx="60" cy="65" rx="5" ry="3" fill="#FF69B4" stroke="black" stroke-width="1"/>
+              <!-- 指甲 -->
+              <path d="M45,25 L40,15" stroke="white" stroke-width="2" stroke-linecap="round"/>
+              <path d="M55,25 L60,15" stroke="white" stroke-width="2" stroke-linecap="round"/>
+              <path d="M75,30 L85,25" stroke="white" stroke-width="2" stroke-linecap="round"/>
+              <path d="M25,40 L15,35" stroke="white" stroke-width="2" stroke-linecap="round"/>
+              <path d="M85,55 L95,60" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 技术栈图标区域 -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="tech-card card-hover bg-white bg-opacity-90 rounded-lg shadow-lg p-4 flex flex-col items-center cursor-pointer" data-index="0">
+          <div class="w-32 h-32 flex items-center justify-center mb-4">
+            <img id="tech-0" src="" alt="技术栈图标" class="max-w-full max-h-full object-contain">
+          </div>
+        </div>
+        <div class="tech-card card-hover bg-white bg-opacity-90 rounded-lg shadow-lg p-4 flex flex-col items-center cursor-pointer" data-index="1">
+          <div class="w-32 h-32 flex items-center justify-center mb-4">
+            <img id="tech-1" src="" alt="技术栈图标" class="max-w-full max-h-full object-contain">
+          </div>
+        </div>
+        <div class="tech-card card-hover bg-white bg-opacity-90 rounded-lg shadow-lg p-4 flex flex-col items-center cursor-pointer" data-index="2">
+          <div class="w-32 h-32 flex items-center justify-center mb-4">
+            <img id="tech-2" src="" alt="技术栈图标" class="max-w-full max-h-full object-contain">
+          </div>
+        </div>
+      </div>
+      
+      <!-- 结果反馈区域 -->
+      <div id="feedback" class="text-center hidden">
+        <div id="success-feedback" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4 hidden">
+          <strong class="font-bold">蒸蚌！</strong>
+          <span class="block sm:inline">你选择了正确的技术栈图标。</span>
+        </div>
+        <div id="error-feedback" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 hidden">
+          <strong class="font-bold">再试一次！</strong>
+          <span class="block sm:inline">这个选择不正确，请再试一次。</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 游戏结束区域 -->
+    <div id="game-over" class="bg-white bg-opacity-90 rounded-xl shadow-xl p-6 text-center hidden">
+      <h2 class="text-3xl font-bold text-gray-800 mb-4">游戏结束！</h2>
+      <p class="text-xl mb-2">你的最终得分: <span id="final-score" class="text-primary font-bold">0</span></p>
+      <button id="play-again-btn" class="bg-primary hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 mt-4">
+        再玩一次
+      </button>
+    </div>
+  </div>
+  
+  <!-- 蒸蚌猫图片 -->
+  <div id="zheng-bang-cat" class="fixed bottom-4 right-4 w-24 h-24 rounded-full overflow-hidden shadow-lg hidden">
+    <img src="https://p3-doubao-search-sign.byteimg.com/labis/image/3d821d8f76578df567880b2773cd8879~tplv-be4g95zd3a-image.jpeg?lk3s=feb11e32&x-expires=1782659405&x-signature=xa4bHfA5gZ3P1qQaGBPjBIrTKms%3D" alt="蒸蚌猫" class="w-full h-full object-cover">
+  </div>
+  
+  <!-- 音效 -->
+  <audio id="zheng-bang-sound" preload="auto">
+    <source src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" type="audio/mpeg">
+  </audio>
+  
+  <script>
+    // 技术栈数据
+    const techStacks = [
+      { name: "React", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" },
+      { name: "Vue.js", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vuejs/vuejs-original.svg" },
+      { name: "Angular", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/angularjs/angularjs-original.svg" },
+      { name: "Node.js", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg" },
+      { name: "Python", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" },
+      { name: "Java", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg" },
+      { name: "JavaScript", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" },
+      { name: "TypeScript", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg" },
+      { name: "HTML", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" },
+      { name: "CSS", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" },
+      { name: "Tailwind CSS", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-original.svg" },
+      { name: "Bootstrap", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/bootstrap/bootstrap-original.svg" },
+      { name: "Git", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg" },
+      { name: "GitHub", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" },
+      { name: "Docker", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg" },
+      { name: "Kubernetes", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/kubernetes/kubernetes-original.svg" },
+      { name: "PHP", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/php/php-original.svg" },
+      { name: "MySQL", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg" },
+      { name: "MongoDB", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg" },
+      { name: "Express", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/express/express-original.svg" },
+      { name: "jQuery", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/jquery/jquery-original.svg" },
+      { name: "Sass", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/sass/sass-original.svg" },
+      { name: "C#", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/csharp/csharp-original.svg" },
+      { name: "Ruby", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/ruby/ruby-original.svg" },
+      { name: "Rails", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/rails/rails-original-wordmark.svg" },
+      { name: "Go", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/go/go-original.svg" },
+      { name: "Swift", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/swift/swift-original.svg" },
+      { name: "Kotlin", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/kotlin/kotlin-original.svg" },
+      { name: "Flutter", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flutter/flutter-original.svg" },
+      { name: "Spring", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/spring/spring-original.svg" },
+      { name: "Flask", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flask/flask-original.svg" },
+      { name: "Unity", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/unity/unity-original.svg" },
+      { name: "Unreal Engine", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/unrealengine/unrealengine-original.svg" },
+      { name: "TensorFlow", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tensorflow/tensorflow-original.svg" },
+      { name: "PyTorch", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/pytorch/pytorch-original.svg" },
+      { name: "Webpack", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/webpack/webpack-original.svg" },
+      { name: "Vite", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vite/vite-original.svg" },
+      { name: "Babel", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/babel/babel-original.svg" },
+      { name: "NPM", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/npm/npm-original-wordmark.svg" },
+      { name: "Yarn", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/yarn/yarn-original.svg" },
+      { name: "Jenkins", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/jenkins/jenkins-original.svg" },
+      { name: "Nginx", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nginx/nginx-original.svg" },
+      { name: "Apache", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apache/apache-original.svg" },
+      { name: "JIRA", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/jira/jira-original.svg" },
+      { name: "Confluence", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/confluence/confluence-original.svg" },
+      { name: "PostgreSQL", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg" },
+      { name: "Redis", imageUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/redis/redis-original.svg" }
+    ];
+    
+    // 游戏状态
+    let currentScore = 0;
+    let timeLeft = 30;
+    let timerInterval;
+    let currentRound = {
+      targetIndex: 0,
+      options: []
+    };
+    let nextRound = null; // 用于双缓冲，预加载下一轮数据
+    let usedTechStacks = []; // 已经出现过的技术栈
+    let shownTechStacks = new Set(); // 已经显示过的技术栈（用于优先显示未出现过的）
+    let isLoading = false; // 标记是否正在加载新数据
+    
+    // DOM 元素
+    const targetTechElement = document.getElementById('target-tech');
+    const techCards = document.querySelectorAll('.tech-card');
+    const techImages = [
+      document.getElementById('tech-0'),
+      document.getElementById('tech-1'),
+      document.getElementById('tech-2')
+    ];
+    const scoreElement = document.getElementById('score');
+    const timerElement = document.getElementById('timer');
+    const restartBtn = document.getElementById('restart-btn');
+    const playAgainBtn = document.getElementById('play-again-btn');
+    const feedbackElement = document.getElementById('feedback');
+    const successFeedbackElement = document.getElementById('success-feedback');
+    const errorFeedbackElement = document.getElementById('error-feedback');
+    const gameOverElement = document.getElementById('game-over');
+    const finalScoreElement = document.getElementById('final-score');
+    const zhengBangCatElement = document.getElementById('zheng-bang-cat');
+    const successSound = document.getElementById('success-sound');
+    const errorSound = document.getElementById('error-sound');
+    const catContainer = document.getElementById('cat-container');
+    const catPaw = document.getElementById('cat-paw');
+    
+    // 存储卡片位置信息
+    let cardPositions = [];
+    
+    // 获取卡片位置信息
+    function getCardPositions() {
+      cardPositions = [];
+      techCards.forEach(card => {
+        const rect = card.getBoundingClientRect();
+        const containerRect = catContainer.getBoundingClientRect();
+        
+        // 计算相对位置
+        const relativeX = rect.left + rect.width / 2 - containerRect.left - containerRect.width / 2;
+        const relativeY = rect.top + rect.height / 2 - containerRect.top - containerRect.height / 2;
+        
+        cardPositions.push({ x: relativeX, y: relativeY });
+      });
+    }
+    
+    // 让猫爪指向指定的卡片
+    function pointCatPawToCard(cardIndex) {
+      if (cardPositions.length === 0 || cardIndex < 0 || cardIndex >= cardPositions.length) {
+        return;
+      }
+      
+      const position = cardPositions[cardIndex];
+      
+      // 计算角度（弧度）
+      let angle = Math.atan2(position.y, position.x);
+      
+      // 转换为角度
+      let degrees = angle * (180 / Math.PI);
+      
+      // 重置猫爪状态
+      catPaw.style.opacity = '0';
+      catPaw.style.transform = 'translate(0, 0) rotate(0deg) scale(0.5)';
+      
+      // 强制重绘
+      void catPaw.offsetWidth;
+      
+      // 设置猫爪的初始位置（从猫的位置开始）
+      catPaw.style.opacity = '1';
+      catPaw.style.transform = 'translate(0, 0) rotate(0deg) scale(0.5)';
+      
+      // 使用requestAnimationFrame确保平滑动画
+      requestAnimationFrame(() => {
+        // 移动到目标位置
+        catPaw.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        catPaw.style.transform = `translate(${position.x * 0.8}px, ${position.y * 0.8}px) rotate(${degrees}deg) scale(1.2)`;
+        catPaw.style.opacity = '1';
+      });
+      
+      // 一段时间后恢复
+      setTimeout(() => {
+        catPaw.style.transition = 'all 0.3s ease-out';
+        catPaw.style.opacity = '0';
+        catPaw.style.transform = 'translate(0, 0) rotate(0deg) scale(0.5)';
+      }, 1000);
+    }
+    
+    // 初始化游戏
+    function initGame() {
+      currentScore = 0;
+      timeLeft = 30;
+      usedTechStacks = [];
+      nextRound = null;
+      isLoading = false;
+      scoreElement.textContent = currentScore;
+      timerElement.textContent = timeLeft;
+      
+      // 隐藏游戏结束界面
+      gameOverElement.classList.add('hidden');
+      
+      // 开始游戏
+      startGame();
+      
+      // 获取卡片位置（延迟一下确保DOM已经渲染）
+      setTimeout(() => {
+        getCardPositions();
+      }, 100);
+    }
+    
+    // 开始游戏
+    function startGame() {
+      // 开始计时器
+      startTimer();
+      
+      // 加载第一轮
+      loadNewRound();
+      
+      // 添加卡片点击事件
+      techCards.forEach(card => {
+        card.addEventListener('click', handleCardClick);
+      });
+    }
+    
+    // 开始计时器
+    function startTimer() {
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        timerElement.textContent = timeLeft;
+        
+        if (timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+    
+    // 预加载下一轮数据
+    function preloadNextRound() {
+      if (isLoading || nextRound) return; // 避免重复加载
+      
+      isLoading = true;
+      
+      // 优先选择未显示过的技术栈，如果都显示过了则重置
+      let availableTechStacks = techStacks.filter(tech => !shownTechStacks.has(tech.name));
+      
+      // 如果所有技术栈都显示过了，重置显示记录
+      if (availableTechStacks.length === 0) {
+        shownTechStacks.clear();
+        availableTechStacks = techStacks;
+      }
+      
+      // 如果当前轮次的选项中有已用过的，排除它们
+      const currentOptionNames = currentRound.options.map(opt => opt.name);
+      availableTechStacks = availableTechStacks.filter(tech => 
+        !usedTechStacks.includes(tech.name) && 
+        !currentOptionNames.includes(tech.name)
+      );
+      
+      // 如果没有足够的未使用技术栈，从所有技术栈中排除当前选项
+      if (availableTechStacks.length < 3) {
+        availableTechStacks = techStacks.filter(tech => 
+          !currentOptionNames.includes(tech.name)
+        );
+      }
+      
+      // 随机选择三个不同的技术栈
+      const shuffled = [...availableTechStacks].sort(() => 0.5 - Math.random());
+      const selected = shuffled.slice(0, 3);
+      
+      // 随机选择一个作为目标
+      const targetIndex = Math.floor(Math.random() * 3);
+      const targetTech = selected[targetIndex];
+      
+      // 预加载图片
+      selected.forEach(tech => {
+        const img = new Image();
+        img.src = tech.imageUrl;
+      });
+      
+      // 存储下一轮信息
+      nextRound = {
+        targetIndex: targetIndex,
+        options: selected,
+        targetTech: targetTech
+      };
+      
+      isLoading = false;
+    }
+
+    // 加载新的一轮
+    function loadNewRound() {
+      // 隐藏反馈
+      feedbackElement.classList.add('hidden');
+      successFeedbackElement.classList.add('hidden');
+      errorFeedbackElement.classList.add('hidden');
+      
+      // 重置卡片样式
+      techCards.forEach(card => {
+        card.classList.remove('success-animation', 'error-animation');
+      });
+      
+      // 使用预加载的数据或创建新数据
+      if (nextRound) {
+        currentRound = nextRound;
+        nextRound = null;
+      } else {
+        // 如果没有预加载数据，立即创建
+        preloadNextRound();
+        currentRound = nextRound;
+        nextRound = null;
+      }
+      
+      // 更新UI
+      targetTechElement.textContent = currentRound.targetTech.name;
+      
+      // 更新图片
+      currentRound.options.forEach((tech, index) => {
+        techImages[index].src = tech.imageUrl;
+        techImages[index].alt = tech.name;
+      });
+      
+      // 添加到已使用列表
+      usedTechStacks.push(currentRound.targetTech.name);
+      
+      // 朗读当前目标技术栈名称
+      speakText(currentRound.targetTech.name);
+      
+      // 预加载下一轮数据
+      preloadNextRound();
+    }
+    
+    // 播放文本语音的函数
+    function speakText(text) {
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'zh-CN'; // 设置语言为中文
+        utterance.rate = 0.8; // 设置语速
+        utterance.pitch = 1; // 设置音调
+        speechSynthesis.speak(utterance);
+      } else {
+        console.log('浏览器不支持文本转语音功能');
+      }
+    }
+    
+    // 处理卡片点击
+    function handleCardClick(event) {
+      const selectedIndex = parseInt(event.currentTarget.dataset.index);
+      const isCorrect = selectedIndex === currentRound.targetIndex;
+      
+      // 让猫爪指向被点击的卡片
+      pointCatPawToCard(selectedIndex);
+      
+      // 显示反馈
+      feedbackElement.classList.remove('hidden');
+      
+      if (isCorrect) {
+        // 正确选择
+        successFeedbackElement.classList.remove('hidden');
+        techCards[selectedIndex].classList.add('success-animation');
+        
+        // 播放"蒸蚌"语音
+        speakText("蒸蚌");
+        
+        // 增加分数
+        currentScore += 10;
+        scoreElement.textContent = currentScore;
+        
+        // 显示蒸蚌猫
+        showZhengBangCat();
+        
+        // 添加时间奖励
+        timeLeft = Math.min(timeLeft + 5, 30);
+        timerElement.textContent = timeLeft;
+        
+        // 创建庆祝效果
+        createConfetti();
+        
+        // 更新已显示技术栈记录
+        shownTechStacks.add(currentRound.targetTech.name);
+        
+        // 快速更新UI - 只更换被正确选择的图标
+        // 1. 先从当前轮次的选项中移除正确的技术栈
+        const remainingOptions = currentRound.options.filter((_, index) => index !== selectedIndex);
+        
+        // 2. 从可用技术栈中随机选择一个未使用的技术栈
+        let availableTechStacks = techStacks.filter(tech => 
+          !shownTechStacks.has(tech.name) && 
+          !usedTechStacks.includes(tech.name) && 
+          !remainingOptions.some(opt => opt.name === tech.name)
+        );
+        
+        // 如果没有足够的未显示技术栈，从所有技术栈中选择
+        if (availableTechStacks.length === 0) {
+          availableTechStacks = techStacks.filter(tech => 
+            !remainingOptions.some(opt => opt.name === tech.name)
+          );
+        }
+        
+        // 随机选择一个新的技术栈
+        const newTech = availableTechStacks[Math.floor(Math.random() * availableTechStacks.length)];
+        
+        // 预加载新图片
+        const img = new Image();
+        img.src = newTech.imageUrl;
+        
+        // 3. 更新当前轮次数据
+        currentRound.options[selectedIndex] = newTech;
+        
+        // 4. 随机选择新的目标
+        const newTargetIndex = Math.floor(Math.random() * 3);
+        currentRound.targetIndex = newTargetIndex;
+        currentRound.targetTech = currentRound.options[newTargetIndex];
+        
+        // 5. 更新UI
+        targetTechElement.textContent = currentRound.targetTech.name;
+        techImages[selectedIndex].src = newTech.imageUrl;
+        techImages[selectedIndex].alt = newTech.name;
+        
+        // 6. 添加到已使用列表
+        usedTechStacks.push(newTech.name);
+        
+        // 7. 预加载下一轮数据
+        preloadNextRound();
+        
+        // 朗读新的目标技术栈名称
+        setTimeout(() => {
+          speakText(currentRound.targetTech.name);
+        }, 1000);
+        
+        // 重置卡片样式
+        setTimeout(() => {
+          techCards[selectedIndex].classList.remove('success-animation');
+          feedbackElement.classList.add('hidden');
+          successFeedbackElement.classList.add('hidden');
+        }, 1000);
+      } else {
+        // 错误选择
+        errorFeedbackElement.classList.remove('hidden');
+        techCards[selectedIndex].classList.add('error-animation');
+        
+        // 播放当前目标技术栈名称语音，指导玩家正确选择
+        speakText(currentRound.targetTech.name);
+        
+        // 减少时间惩罚
+        timeLeft = Math.max(timeLeft - 3, 0);
+        timerElement.textContent = timeLeft;
+        
+        // 重置卡片样式
+        setTimeout(() => {
+          techCards[selectedIndex].classList.remove('error-animation');
+          feedbackElement.classList.add('hidden');
+          errorFeedbackElement.classList.add('hidden');
+          
+          // 更新卡片位置信息（因为DOM可能已经变化）
+          getCardPositions();
+        }, 1000);
+      }
+    }
+    
+    // 显示蒸蚌猫
+    function showZhengBangCat() {
+      zhengBangCatElement.classList.remove('hidden');
+      zhengBangCatElement.classList.add('animate-float');
+      
+      setTimeout(() => {
+        zhengBangCatElement.classList.add('hidden');
+        zhengBangCatElement.classList.remove('animate-float');
+      }, 1500);
+    }
+    
+    // 创建庆祝效果
+    function createConfetti() {
+      const colors = ['#f00', '#0f0', '#00f', '#ff0', '#f0f', '#0ff', '#f90', '#9f0', '#0f9', '#f09'];
+      const container = document.querySelector('.container');
+      
+      // 创建更多彩屑
+      for (let i = 0; i < 100; i++) {
+        const confetti = document.createElement('div');
+        confetti.classList.add('confetti');
+        
+        // 随机形状
+        const shape = Math.floor(Math.random() * 3);
+        if (shape === 0) {
+          // 圆形
+          confetti.style.borderRadius = '50%';
+        } else if (shape === 1) {
+          // 方形
+          confetti.style.borderRadius = '0';
+        } else {
+          // 星形 (使用旋转的方形模拟)
+          confetti.style.transform = 'rotate(45deg)';
+        }
+        
+        // 随机颜色和大小
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.width = `${5 + Math.random() * 10}px`;
+        confetti.style.height = `${5 + Math.random() * 10}px`;
+        
+        // 随机位置和动画
+        confetti.style.left = `${Math.random() * 100}%`;
+        confetti.style.animationDelay = `${Math.random() * 3}s`;
+        confetti.style.animationDuration = `${2 + Math.random() * 3}s`;
+        
+        // 添加一些随机性到动画
+        confetti.style.opacity = Math.random() * 0.8 + 0.2;
+        confetti.style.transform += ` translate(${Math.random() * 100 - 50}px, 0)`;
+        
+        container.appendChild(confetti);
+        
+        // 动画结束后移除元素
+        confetti.addEventListener('animationend', () => {
+          confetti.remove();
+        });
+      }
+      
+      // 添加额外的庆祝效果 - 闪烁背景
+      const gameArea = document.querySelector('.bg-white.rounded-xl.shadow-xl');
+      gameArea.classList.add('animate-pulse');
+      setTimeout(() => {
+        gameArea.classList.remove('animate-pulse');
+      }, 1000);
+    }
+    
+    // 结束游戏
+    function endGame() {
+      // 清除计时器
+      clearInterval(timerInterval);
+      
+      // 移除卡片点击事件
+      techCards.forEach(card => {
+        card.removeEventListener('click', handleCardClick);
+      });
+      
+      // 显示游戏结束界面
+      gameOverElement.classList.remove('hidden');
+      finalScoreElement.textContent = currentScore;
+    }
+    
+    // 重新开始游戏
+    restartBtn.addEventListener('click', initGame);
+    playAgainBtn.addEventListener('click', initGame);
+    
+    // 初始化游戏
+    window.addEventListener('DOMContentLoaded', initGame);
+    
+    // 窗口大小变化时重新计算卡片位置
+    window.addEventListener('resize', () => {
+      getCardPositions();
+    });
+  </script>
+</body>
+</html>
