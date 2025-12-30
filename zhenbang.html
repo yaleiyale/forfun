@@ -94,13 +94,43 @@
         border-radius: 50%;
         animation: confetti-fall 3s ease-in-out forwards;
       }
-      @keyframes confetti-fall {
+      .confetti-new {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        animation: confetti-new-fall 2s ease-out forwards;
+        z-index: 100;
+      }
+      @keyframes confetti-new-fall {
         0% {
-          transform: translateY(-100vh) rotate(0deg);
+          transform: translateY(0) rotate(0deg) scale(0);
           opacity: 1;
         }
         100% {
-          transform: translateY(100vh) rotate(360deg);
+          transform: translateY(-100vh) rotate(720deg) scale(1);
+          opacity: 0;
+        }
+      }
+      .celebration-center {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100px;
+        height: 100px;
+        animation: center-ripple 1s ease-out forwards;
+        z-index: 100;
+      }
+      @keyframes center-ripple {
+        0% {
+          width: 0;
+          height: 0;
+          opacity: 1;
+        }
+        100% {
+          width: 200px;
+          height: 200px;
           opacity: 0;
         }
       }
@@ -111,7 +141,7 @@
   <div class="container mx-auto px-4 py-8 max-w-4xl">
     <!-- 游戏标题 -->
     <header class="text-center mb-8">
-      <h1 class="text-4xl md:text-5xl font-bold text-dark mb-2 text-shadow"></h1>
+      <h1 class="text-4xl md:text-5xl font-bold text-dark mb-2 text-shadow">蚌不蚌</h1>
       <p class="text-lg text-gray-600"></p>
     </header>
     
@@ -134,40 +164,39 @@
     <div class="bg-white bg-opacity-80 rounded-xl shadow-xl p-6 mb-8">
       <!-- 目标技术栈 -->
       <div class="text-center mb-8">
-        <h2 class="text-2xl font-bold text-gray-800 mb-2">请选择: <span id="target-tech" class="text-primary font-extrabold text-3xl">React</span></h2>
-        <p class="text-gray-600">从下方三个图标中选择与上方技术栈名称匹配的一个</p>
-      </div>
-      
-      <!-- 猫图片区域 -->
-      <div class="flex justify-center mb-8 relative">
-        <div id="cat-container" class="relative w-48 h-48">
-          <img id="cat-image" src="https://p11-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/7dbc0a5fc1d04b03bf7537951537e7df.png~tplv-a9rns2rl98-24:720:720.png?rcl=20251230232618899198AC47430461EF30&rk3s=8e244e95&rrcfp=8a172a1a&x-expires=1767713178&x-signature=S1uSq7FGd5dBbetuMrOBRj1f5uo%3D" alt="猫" class="w-full h-full object-contain bg-white rounded-full p-2 shadow-lg">
-          <div id="cat-paw" class="absolute top-0 left-0 w-20 h-20 bg-transparent transform origin-bottom-left transition-all duration-500 opacity-0 z-50">
-            <!-- 更卡通的猫爪SVG -->
-            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-              <!-- 手掌 -->
-              <ellipse cx="50" cy="60" rx="30" ry="20" fill="#FFD700" stroke="black" stroke-width="2"/>
-              <!-- 拇指 -->
-              <ellipse cx="30" cy="40" rx="10" ry="12" fill="#FFD700" stroke="black" stroke-width="2" transform="rotate(-30, 30, 40)"/>
-              <!-- 食指 -->
-              <ellipse cx="50" cy="30" rx="10" ry="12" fill="#FFD700" stroke="black" stroke-width="2"/>
-              <!-- 中指 -->
-              <ellipse cx="70" cy="35" rx="10" ry="12" fill="#FFD700" stroke="black" stroke-width="2" transform="rotate(30, 70, 35)"/>
-              <!-- 无名指 -->
-              <ellipse cx="80" cy="50" rx="10" ry="12" fill="#FFD700" stroke="black" stroke-width="2" transform="rotate(45, 80, 50)"/>
-              <!-- 小拇指 -->
-              <ellipse cx="20" cy="50" rx="10" ry="12" fill="#FFD700" stroke="black" stroke-width="2" transform="rotate(-45, 20, 50)"/>
-              <!-- 爪垫 -->
-              <ellipse cx="40" cy="65" rx="5" ry="3" fill="#FF69B4" stroke="black" stroke-width="1"/>
-              <ellipse cx="50" cy="68" rx="5" ry="3" fill="#FF69B4" stroke="black" stroke-width="1"/>
-              <ellipse cx="60" cy="65" rx="5" ry="3" fill="#FF69B4" stroke="black" stroke-width="1"/>
-              <!-- 指甲 -->
-              <path d="M45,25 L40,15" stroke="white" stroke-width="2" stroke-linecap="round"/>
-              <path d="M55,25 L60,15" stroke="white" stroke-width="2" stroke-linecap="round"/>
-              <path d="M75,30 L85,25" stroke="white" stroke-width="2" stroke-linecap="round"/>
-              <path d="M25,40 L15,35" stroke="white" stroke-width="2" stroke-linecap="round"/>
-              <path d="M85,55 L95,60" stroke="white" stroke-width="2" stroke-linecap="round"/>
-            </svg>
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">请选择: <span id="target-tech" class="text-primary font-extrabold text-3xl">React</span></h2>
+        
+        <!-- 猫图片区域 -->
+        <div class="flex justify-center mb-6 relative">
+          <div id="cat-container" class="relative w-32 h-32">
+            <img id="cat-image" src="https://p11-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/7dbc0a5fc1d04b03bf7537951537e7df.png~tplv-a9rns2rl98-24:720:720.png?rcl=20251230232618899198AC47430461EF30&rk3s=8e244e95&rrcfp=8a172a1a&x-expires=1767713178&x-signature=S1uSq7FGd5dBbetuMrOBRj1f5uo%3D" alt="猫" class="w-full h-full object-contain bg-white rounded-full p-2 shadow-lg">
+            <div id="cat-paw" class="absolute top-0 left-0 w-20 h-20 bg-transparent transform origin-bottom-left transition-all duration-500 opacity-0 z-50">
+              <!-- 更卡通的猫爪SVG -->
+              <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <!-- 手掌 -->
+                <ellipse cx="50" cy="60" rx="30" ry="20" fill="#FFD700" stroke="black" stroke-width="2"/>
+                <!-- 拇指 -->
+                <ellipse cx="30" cy="40" rx="10" ry="12" fill="#FFD700" stroke="black" stroke-width="2" transform="rotate(-30, 30, 40)"/>
+                <!-- 食指 -->
+                <ellipse cx="50" cy="30" rx="10" ry="12" fill="#FFD700" stroke="black" stroke-width="2"/>
+                <!-- 中指 -->
+                <ellipse cx="70" cy="35" rx="10" ry="12" fill="#FFD700" stroke="black" stroke-width="2" transform="rotate(30, 70, 35)"/>
+                <!-- 无名指 -->
+                <ellipse cx="80" cy="50" rx="10" ry="12" fill="#FFD700" stroke="black" stroke-width="2" transform="rotate(45, 80, 50)"/>
+                <!-- 小拇指 -->
+                <ellipse cx="20" cy="50" rx="10" ry="12" fill="#FFD700" stroke="black" stroke-width="2" transform="rotate(-45, 20, 50)"/>
+                <!-- 爪垫 -->
+                <ellipse cx="40" cy="65" rx="5" ry="3" fill="#FF69B4" stroke="black" stroke-width="1"/>
+                <ellipse cx="50" cy="68" rx="5" ry="3" fill="#FF69B4" stroke="black" stroke-width="1"/>
+                <ellipse cx="60" cy="65" rx="5" ry="3" fill="#FF69B4" stroke="black" stroke-width="1"/>
+                <!-- 指甲 -->
+                <path d="M45,25 L40,15" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                <path d="M55,25 L60,15" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                <path d="M75,30 L85,25" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                <path d="M25,40 L15,35" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                <path d="M85,55 L95,60" stroke="white" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
           </div>
         </div>
       </div>
@@ -214,10 +243,7 @@
     </div>
   </div>
   
-  <!-- 蒸蚌猫图片 -->
-  <div id="zheng-bang-cat" class="fixed bottom-4 right-4 w-24 h-24 rounded-full overflow-hidden shadow-lg hidden">
-    <img src="https://p3-doubao-search-sign.byteimg.com/labis/image/3d821d8f76578df567880b2773cd8879~tplv-be4g95zd3a-image.jpeg?lk3s=feb11e32&x-expires=1782659405&x-signature=xa4bHfA5gZ3P1qQaGBPjBIrTKms%3D" alt="蒸蚌猫" class="w-full h-full object-cover">
-  </div>
+  <!-- 蒸蚌猫图片 - 已移除 -->
   
   <!-- 音效 -->
   <audio id="zheng-bang-sound" preload="auto">
@@ -306,7 +332,7 @@
     const errorFeedbackElement = document.getElementById('error-feedback');
     const gameOverElement = document.getElementById('game-over');
     const finalScoreElement = document.getElementById('final-score');
-    const zhengBangCatElement = document.getElementById('zheng-bang-cat');
+    // 移除了zhengBangCatElement的定义，因为我们不再需要它
     const successSound = document.getElementById('success-sound');
     const errorSound = document.getElementById('error-sound');
     const catContainer = document.getElementById('cat-container');
@@ -551,8 +577,7 @@
         currentScore += 10;
         scoreElement.textContent = currentScore;
         
-        // 显示蒸蚌猫
-        showZhengBangCat();
+        // 显示蒸蚌猫 - 已移除调用
         
         // 添加时间奖励
         timeLeft = Math.min(timeLeft + 5, 30);
@@ -643,68 +668,77 @@
       }
     }
     
-    // 显示蒸蚌猫
-    function showZhengBangCat() {
-      zhengBangCatElement.classList.remove('hidden');
-      zhengBangCatElement.classList.add('animate-float');
-      
-      setTimeout(() => {
-        zhengBangCatElement.classList.add('hidden');
-        zhengBangCatElement.classList.remove('animate-float');
-      }, 1500);
-    }
-    
     // 创建庆祝效果
     function createConfetti() {
-      const colors = ['#f00', '#0f0', '#00f', '#ff0', '#f0f', '#0ff', '#f90', '#9f0', '#0f9', '#f09'];
+      const colors = ['#FCA5A5', '#FDE68A', '#A7F3D0', '#C7D2FE', '#FBCFE8', '#DDD6FE', '#FECACA', '#FEF08A', '#A7F3D0', '#60A5FA'];
       const container = document.querySelector('.container');
+      const gameArea = document.querySelector('.bg-white.rounded-xl.shadow-xl');
       
-      // 创建更多彩屑
-      for (let i = 0; i < 100; i++) {
+      // 在游戏区域内创建庆祝效果
+      const gameRect = gameArea.getBoundingClientRect();
+      const centerX = gameRect.left + gameRect.width / 2;
+      const centerY = gameRect.top + gameArea.offsetHeight / 2;
+      
+      // 创建中心波纹效果
+      const ripple = document.createElement('div');
+      ripple.classList.add('celebration-center');
+      ripple.style.background = 'radial-gradient(circle, rgba(16,185,129,0.5) 0%, rgba(16,185,129,0) 70%)';
+      document.body.appendChild(ripple);
+      
+      // 创建更多美观的庆祝粒子
+      for (let i = 0; i < 150; i++) {
         const confetti = document.createElement('div');
-        confetti.classList.add('confetti');
+        confetti.classList.add('confetti-new');
+        
+        // 随机颜色
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.backgroundColor = color;
+        confetti.style.boxShadow = `0 0 8px ${color}`;
+        
+        // 随机大小
+        const size = 6 + Math.random() * 10;
+        confetti.style.width = `${size}px`;
+        confetti.style.height = `${size}px`;
+        
+        // 随机起始位置（围绕中心点）
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 50 + Math.random() * 100;
+        const startX = centerX + Math.cos(angle) * 20;
+        const startY = centerY + Math.sin(angle) * 20;
+        
+        confetti.style.left = `${startX}px`;
+        confetti.style.top = `${startY}px`;
+        
+        // 随机动画参数
+        const duration = 1 + Math.random() * 2;
+        const delay = Math.random() * 0.5;
+        confetti.style.animationDuration = `${duration}s`;
+        confetti.style.animationDelay = `${delay}s`;
         
         // 随机形状
-        const shape = Math.floor(Math.random() * 3);
-        if (shape === 0) {
-          // 圆形
-          confetti.style.borderRadius = '50%';
-        } else if (shape === 1) {
-          // 方形
+        if(Math.random() > 0.5) {
           confetti.style.borderRadius = '0';
-        } else {
-          // 星形 (使用旋转的方形模拟)
           confetti.style.transform = 'rotate(45deg)';
         }
         
-        // 随机颜色和大小
-        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        confetti.style.width = `${5 + Math.random() * 10}px`;
-        confetti.style.height = `${5 + Math.random() * 10}px`;
-        
-        // 随机位置和动画
-        confetti.style.left = `${Math.random() * 100}%`;
-        confetti.style.animationDelay = `${Math.random() * 3}s`;
-        confetti.style.animationDuration = `${2 + Math.random() * 3}s`;
-        
-        // 添加一些随机性到动画
-        confetti.style.opacity = Math.random() * 0.8 + 0.2;
-        confetti.style.transform += ` translate(${Math.random() * 100 - 50}px, 0)`;
-        
-        container.appendChild(confetti);
+        document.body.appendChild(confetti);
         
         // 动画结束后移除元素
-        confetti.addEventListener('animationend', () => {
+        setTimeout(() => {
           confetti.remove();
-        });
+        }, duration * 1000);
       }
       
-      // 添加额外的庆祝效果 - 闪烁背景
-      const gameArea = document.querySelector('.bg-white.rounded-xl.shadow-xl');
+      // 移除波纹元素
+      setTimeout(() => {
+        ripple.remove();
+      }, 1000);
+      
+      // 添加游戏区域脉冲效果
       gameArea.classList.add('animate-pulse');
       setTimeout(() => {
         gameArea.classList.remove('animate-pulse');
-      }, 1000);
+      }, 600);
     }
     
     // 结束游戏
